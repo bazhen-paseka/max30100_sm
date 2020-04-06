@@ -57,22 +57,19 @@
 *						    GLOBAL VARIABLES
 **************************************************************************
 */
-		lcd1602_fc113_struct h1_lcd1602 =
-		{
+		lcd1602_fc113_struct h1_lcd1602 =		{
 			.i2c = &hi2c1,
 			.device_i2c_address = LCD1602_I2C_ADDR
 		};
 		//----------------------------------------------------------
 
-		bh1750_struct h1_bh1750 =
-		{
+		bh1750_struct h1_bh1750 =				{
 			.i2c = &hi2c1,
 			.device_i2c_address = BH1750_I2C_ADDR
 		};
 		//----------------------------------------------------------
 
-		max30100_struct h1_max30100 =
-		{
+		max30100_struct h1_max30100 = 			{
 			.i2c = &hi2c1,
 			.device_i2c_address = MAX30100_I2C_ADR
 		};
@@ -112,29 +109,23 @@ void MAX30100_Init(void) {
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 	LCD1602_Clear(&h1_lcd1602);
 
+	 I2Cdev_init(&hi2c1);
 }
 //************************************************************************
 
 void MAX30100_Main(void) {
 	HAL_Delay(3000);
+	uint8_t dev_address = MAX30100_I2C_ADR;
 
 	char DataChar[100];
 	sprintf(DataChar,"%d) \t", test++);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
+//	uint8_t ModeConfiguration = 0b01001011;
+//	I2Cdev_writeByte(dev_address, 6, ModeConfiguration);
+
 	uint8_t max30_u8[10];
-	for (int i=0; i<10; i++) {
-		max30_u8[i] = 0xff;
-	}
-	uint8_t dev_address = MAX30100_I2C_ADR;
-
-	//if (HAL_I2C_IsDeviceReady (&hi2c1, dev_address<<1, 10, 100) == HAL_OK)	{
-	//	HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, max30_u8, 10, 200);
-	//}
-
-		HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, &max30_u8[0], 1, 200);
-		HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, &max30_u8[1], 1, 200);
-		HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, &max30_u8[2], 1, 200);
+	HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, max30_u8, 10, 200);
 
 	sprintf(DataChar,"\r\n" );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
