@@ -27,6 +27,10 @@
 **************************************************************************
 */
 
+	//	#define SET_BIT(var, pos) ((var) |= (1UL << (pos)))
+		#define CLR_BIT(var, pos) (var &= ~(1UL << (pos)))
+		#define CHECK_BIT(var, pos) (((var) & (1UL << (pos))) != 0)
+
 /*
 **************************************************************************
 *							LOCAL CONSTANTS
@@ -53,10 +57,10 @@
 *						    GLOBAL VARIABLES
 **************************************************************************
 */
-		lcd1602_fc113_struct h1_lcd1602_fc113 =
+		lcd1602_fc113_struct h1_lcd1602 =
 		{
 			.i2c = &hi2c1,
-			.device_i2c_address = ADR_I2C_FC113
+			.device_i2c_address = LCD1602_I2C_ADDR
 		};
 		//----------------------------------------------------------
 
@@ -64,6 +68,13 @@
 		{
 			.i2c = &hi2c1,
 			.device_i2c_address = BH1750_I2C_ADDR
+		};
+		//----------------------------------------------------------
+
+		max30100_struct h1_max30100 =
+		{
+			.i2c = &hi2c1,
+			.device_i2c_address = MAX30100_I2C_ADR
 		};
 		//----------------------------------------------------------
 
@@ -92,46 +103,60 @@ void MAX30100_Init(void) {
 			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-	LCD1602_Init(&h1_lcd1602_fc113);
-	LCD1602_scan_I2C_bus(&h1_lcd1602_fc113);
-	LCD1602_Scan_I2C_to_UART(&h1_lcd1602_fc113, &huart1);
+	LCD1602_Init(&h1_lcd1602);
+	LCD1602_scan_I2C_bus(&h1_lcd1602);
+	LCD1602_Scan_I2C_to_UART(&h1_lcd1602, &huart1);
 
 	HAL_StatusTypeDef res = BH1750_Init( &h1_bh1750 );
 	sprintf(DataChar,"\r\n\tBH1750 init status: %d;\r\n", (int)res);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
-	LCD1602_Clear(&h1_lcd1602_fc113);
+	LCD1602_Clear(&h1_lcd1602);
 
 }
 //************************************************************************
 
 void MAX30100_Main(void) {
-	HAL_Delay(1000);
+	HAL_Delay(3000);
 
 	char DataChar[100];
 	sprintf(DataChar,"%d) \t", test++);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
 	uint8_t max30_u8[10];
-	HAL_I2C_Master_Receive(&hi2c1, 0x57, max30_u8, 10, 200);
-	sprintf(DataChar,"%d %d %d %d %d \t %d %d %d %d %d ; ",
-			max30_u8[0],
-			max30_u8[1],
-			max30_u8[2],
-			max30_u8[3],
-			max30_u8[4],
-			max30_u8[5],
-			max30_u8[6],
-			max30_u8[7],
-			max30_u8[8],
-			max30_u8[9]	 );
+	for (int i=0; i<10; i++) {
+		max30_u8[i] = 0xff;
+	}
+	uint8_t dev_address = MAX30100_I2C_ADR;
+
+	//if (HAL_I2C_IsDeviceReady (&hi2c1, dev_address<<1, 10, 100) == HAL_OK)	{
+	//	HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, max30_u8, 10, 200);
+	//}
+
+		HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, &max30_u8[0], 1, 200);
+		HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, &max30_u8[1], 1, 200);
+		HAL_I2C_Master_Receive(&hi2c1, dev_address<<1, &max30_u8[2], 1, 200);
+
+	sprintf(DataChar,"\r\n" );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
-	uint32_t lux_u32 = BH1750_Main( &h1_bh1750 );
-	sprintf(DataChar,"lux: %d; \r\n", (int)lux_u32);
-	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+	for (int reg=0; reg<10; reg++) {
+		sprintf(DataChar,"%d) ", reg );
+		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+		for (int bit=7; bit>=0; bit--) {
+			sprintf(DataChar,"%d ",	CHECK_BIT(max30_u8[reg], bit) );
+			HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+		}
+		sprintf(DataChar,"\r\n" );
+		HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+	}
 
-	sprintf(DataChar,"Lux=%05d\n", (int)lux_u32);
-	LCD1602_Print_Line(&h1_lcd1602_fc113, DataChar, strlen(DataChar));
+
+//	uint32_t lux_u32 = BH1750_Main( &h1_bh1750 );
+//	sprintf(DataChar,"lux: %d; ", (int)lux_u32);
+//	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+//
+//	sprintf(DataChar,"%04d) Lux=%05d;", test, (int)lux_u32);
+//	LCD1602_Print_Line(&h1_lcd1602, DataChar, strlen(DataChar));
 }
 //-------------------------------------------------------------------------------------------------
 

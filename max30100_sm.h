@@ -33,6 +33,7 @@
 	#include "max30100_local_config.h"
 	#include "lcd1602_fc113_sm.h"
 	#include "bh1750_sm.h"
+	#include "i2c_techmaker_sm.h"
 
 /*
 **************************************************************************
@@ -45,7 +46,11 @@
 *								   DATA TYPES
 **************************************************************************
 */
-
+		typedef struct
+		{
+			I2C_HandleTypeDef 	*i2c;
+			uint8_t 			 device_i2c_address;
+		} max30100_struct;
 /*
 **************************************************************************
 *								GLOBAL VARIABLES
