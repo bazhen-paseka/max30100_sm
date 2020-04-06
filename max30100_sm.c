@@ -53,8 +53,13 @@
 *						    GLOBAL VARIABLES
 **************************************************************************
 */
+		lcd1602_fc113_struct h1_lcd1602_fc113 =
+		{
+			.i2c = &hi2c1,
+			.device_i2c_address = ADR_I2C_FC113
+		};
 
-
+		int test=123;
 /*
 **************************************************************************
 *                        LOCAL FUNCTION PROTOTYPES
@@ -68,7 +73,7 @@
 */
 
 void MAX30100_Init(void) {
-	#define SOFT_VERSION 123
+
 	int soft_version_arr_int[3];
 	soft_version_arr_int[0] = ((SOFT_VERSION) / 100) %10 ;
 	soft_version_arr_int[1] = ((SOFT_VERSION) /  10) %10 ;
@@ -79,12 +84,19 @@ void MAX30100_Init(void) {
 			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
+	LCD1602_Init(&h1_lcd1602_fc113);
+	LCD1602_scan_I2C_bus(&h1_lcd1602_fc113);
+	LCD1602_Scan_I2C_to_UART(&h1_lcd1602_fc113, &huart1);
+
 }
 //************************************************************************
 
-void NAX30100_Main(void) {
-	  HAL_GPIO_TogglePin(LED_BOARD_GPIO_Port,LED_BOARD_Pin);
-	  HAL_Delay(1100);
+void MAX30100_Main(void) {
+	HAL_GPIO_TogglePin(LED_BOARD_GPIO_Port,LED_BOARD_Pin);
+	HAL_Delay(1000);
+	char DataChar[100];
+	sprintf(DataChar,"%d) max30100\r\n", test++);
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 //-------------------------------------------------------------------------------------------------
 

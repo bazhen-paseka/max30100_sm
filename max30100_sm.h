@@ -30,6 +30,10 @@
 	#include "stdio.h"
 	#include <string.h>
 
+	#include "max30100_local_config.h"
+	#include "lcd1602_fc113_sm.h"
+
+
 /*
 **************************************************************************
 *								    DEFINES
