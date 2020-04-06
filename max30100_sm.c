@@ -59,7 +59,7 @@
 			.device_i2c_address = ADR_I2C_FC113
 		};
 
-		int test=123;
+		int test = 0;
 /*
 **************************************************************************
 *                        LOCAL FUNCTION PROTOTYPES
@@ -80,7 +80,7 @@ void MAX30100_Init(void) {
 	soft_version_arr_int[2] = ((SOFT_VERSION)      ) %10 ;
 
 	char DataChar[100];
-	sprintf(DataChar,"\r\n\tMAX30100 2020-march-27 v%d.%d.%d \r\n\tUART1 for debug on speed 115200/8-N-1\r\n\r\n",
+	sprintf(DataChar,"\r\n\tMAX30100 2020-April-05 v%d.%d.%d \r\n\tUART1 for debug on speed 115200/8-N-1\r\n\r\n",
 			soft_version_arr_int[0], soft_version_arr_int[1], soft_version_arr_int[2]);
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 
@@ -92,10 +92,25 @@ void MAX30100_Init(void) {
 //************************************************************************
 
 void MAX30100_Main(void) {
-	HAL_GPIO_TogglePin(LED_BOARD_GPIO_Port,LED_BOARD_Pin);
+//	HAL_GPIO_TogglePin(LED_BOARD_GPIO_Port,LED_BOARD_Pin);
 	HAL_Delay(1000);
 	char DataChar[100];
-	sprintf(DataChar,"%d) max30100\r\n", test++);
+	sprintf(DataChar,"%d) \t", test++);
+	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
+
+	uint8_t max30_u8[10];
+	HAL_I2C_Master_Receive(&hi2c1, 0x57, max30_u8, 10, 200);
+	sprintf(DataChar,"%d %d %d %d %d \t %d %d %d %d %d \r\n",
+			max30_u8[0],
+			max30_u8[1],
+			max30_u8[2],
+			max30_u8[3],
+			max30_u8[4],
+			max30_u8[5],
+			max30_u8[6],
+			max30_u8[7],
+			max30_u8[8],
+			max30_u8[9]	 );
 	HAL_UART_Transmit(&huart1, (uint8_t *)DataChar, strlen(DataChar), 100);
 }
 //-------------------------------------------------------------------------------------------------
