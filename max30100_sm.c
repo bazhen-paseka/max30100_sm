@@ -110,6 +110,9 @@ void MAX30100_Init(void) {
 	LCD1602_Clear(&h1_lcd1602);
 
 	 I2Cdev_init(&hi2c1);
+	 uint8_t dev_address = MAX30100_I2C_ADR;
+	 uint8_t ModeConfiguration = 0b01000010;
+	 I2Cdev_writeByte(dev_address, 6, ModeConfiguration);
 }
 //************************************************************************
 
